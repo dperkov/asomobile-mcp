@@ -5,8 +5,6 @@
 [![ASOMobile](https://img.shields.io/badge/API-ASOMobile-green.svg)](https://asomobile.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Claude (or any MCP client) query the [ASOMobile](https://asomobile.net) public API for real, paid ASO data...
-# ASOMobile MCP Server
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Claude (or any MCP client) query the [ASOMobile](https://asomobile.net) public API for real, paid ASO data: keyword traffic, competition, KEI, app rankings, organic downloads, and more.
 
