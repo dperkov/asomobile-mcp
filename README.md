@@ -130,7 +130,7 @@ For Claude Desktop with Docker:
 
 ## How it works
 
-ASOMobile uses an async two-step pattern: you `GET /endpoint/` to enqueue a job (returns `ticket_id`), then `GET /endpoint/result?ticket_id=…` repeatedly until the job is done. This server hides that polling — every tool returns the final data synchronously. Default timeout: 2 minutes per call (40 polls × 3 seconds), tunable in `server.py`.
+ASOMobile uses an async two-step pattern: you `GET /endpoint/` to enqueue a job (returns `ticket_id`), then `GET /endpoint/result?ticket_id=…` repeatedly until the job is done. This server hides that polling — every tool returns the final data synchronously. Default timeout: 3 minutes per call (60 polls × 3 seconds), tunable via `ASOMOBILE_POLL_MAX_ATTEMPTS` and `ASOMOBILE_POLL_INTERVAL` env vars.
 
 ## Test it manually
 

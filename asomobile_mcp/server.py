@@ -266,6 +266,34 @@ def _trim_response(
     return data
 
 
+def _trim_multi_country(
+    data: Any,
+    limit: int | None,
+    fields: list[str] | None,
+) -> Any:
+    """
+    Trim the multi-country keywords response. Shape per spec:
+        [{"country": "US", "data": [{kw1}, {kw2}, ...]}, ...]
+    The plain _trim_response would slice the country list — here we slice the
+    inner per-country keyword arrays instead.
+    """
+    if not isinstance(data, list):
+        return data
+    out = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            out.append(entry)
+            continue
+        kws = entry.get("data", [])
+        if isinstance(kws, list):
+            if limit is not None:
+                kws = kws[:limit]
+            if fields:
+                kws = [{f: k.get(f) for f in fields if f in k} for k in kws]
+        out.append({**entry, "data": kws})
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Response wrapper — marks external data as untrusted
 # ---------------------------------------------------------------------------
@@ -427,14 +455,16 @@ async def _two_step(
     use_cache: bool = True,
 ) -> dict[str, Any]:
     """Submit request, poll for result. Uses TTL cache by default."""
-    _check_and_increment_request_count()
-
     if use_cache:
         key = _cache_key(result_path, payload)
         cached = _cache_get(key)
         if cached is not None:
             log.info("Cache hit for %s", result_path)
             return cached
+
+    # Only count requests that will actually hit the API. Cache hits return above
+    # without making any network call, so they shouldn't burn the session quota.
+    _check_and_increment_request_count()
 
     first = (
         await _async_get(request_path, payload)
@@ -507,9 +537,11 @@ async def app_profile(
     )
     data = raw.get("data", raw)
     if isinstance(data, dict) and not include_urls:
+        # API returns the screenshot field as 'screenshot' (singular) for at least
+        # Android; strip both spellings defensively so URLs don't leak into context.
         data = {
             k: v for k, v in data.items()
-            if k not in ("icon", "screenshots", "feature_graphic", "preview_videos")
+            if k not in ("icon", "screenshot", "screenshots", "feature_graphic", "preview_videos")
         }
     return _wrap_response(data, "app_profile")
 
@@ -620,7 +652,9 @@ async def app_keywords_multiple_countries(
         },
         method="POST",
     )
-    data = _trim_response(raw.get("data", raw), limit, fields)
+    # Response shape: [{"country": "US", "data": [keyword, ...]}, ...]
+    # _trim_multi_country slices the per-country keyword arrays, not the country list.
+    data = _trim_multi_country(raw.get("data", raw), limit, fields)
     return _wrap_response(data, "app_keywords_multiple_countries", limit_applied=limit)
 
 
