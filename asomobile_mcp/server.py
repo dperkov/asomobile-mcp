@@ -198,6 +198,26 @@ def _validate_keywords_list(keywords: list[str], api_max: int | None = None) -> 
     return validated
 
 
+def _validate_batch_keywords(keywords: list[str]) -> list[str]:
+    """
+    Batch account endpoints validate each keyword server-side and report a
+    per-keyword status, so only the batch size is checked here.
+    """
+    keywords = list(dict.fromkeys(keywords))
+    if len(keywords) > 2000:
+        raise ValueError(
+            f"Too many keywords: {len(keywords)}. "
+            "The ASOMobile API accepts at most 2000 per request."
+        )
+    if len(keywords) > MAX_KEYWORDS_PER_REQUEST:
+        raise ValueError(
+            f"Too many keywords: {len(keywords)}. "
+            f"Maximum allowed per request is {MAX_KEYWORDS_PER_REQUEST}. "
+            f"Override with ASOMOBILE_MAX_KEYWORDS env var."
+        )
+    return keywords
+
+
 def _validate_keyword(keyword: str) -> str:
     if not keyword.strip() or len(keyword) > 100:
         raise ValueError(
@@ -910,7 +930,7 @@ async def keyword_monitor(
     country: str = "US",
     platform: Literal["IOS", "ANDROID"] = "IOS",
     ios_device: Literal["IPHONE", "IPAD"] = "IPHONE",
-    group_id: str | None = None,
+    group_id: int | None = None,
 ) -> dict[str, Any]:
     """
     Current ranks + metrics for keywords you've added to Keyword Monitor in
@@ -1374,6 +1394,7 @@ async def account_add_app(
         method="POST",
         use_cache=False,
     )
+    _cache.clear()  # tracked apps/keywords changed — cached monitor results are stale
     return _wrap_response(raw.get("data", raw), "account_add_app")
 
 
@@ -1393,6 +1414,7 @@ async def account_delete_app(
         method="DELETE",
         use_cache=False,
     )
+    _cache.clear()  # tracked apps/keywords changed — cached monitor results are stale
     return _wrap_response(raw.get("data", raw), "account_delete_app")
 
 
@@ -1411,13 +1433,14 @@ async def account_add_keywords(
 
     Args:
         keywords: up to 2000 keywords (API limit; also capped by ASOMOBILE_MAX_KEYWORDS,
-                  default 20). Duplicates are dropped.
+                  default 20). Duplicates are dropped; individual keywords are validated
+                  by the API, not locally, so one bad keyword doesn't block the rest.
     """
     raw = await _two_step(
         "/account/keywords/add-keywords",
         "/account/keywords/add-keywords/result",
         {
-            "keywords": _validate_keywords_list(list(dict.fromkeys(keywords)), api_max=2000),
+            "keywords": _validate_batch_keywords(keywords),
             "app_id": _normalize_app_id(app_id),
             "platform": platform,
             "country": _validate_country(country),
@@ -1425,6 +1448,7 @@ async def account_add_keywords(
         method="POST",
         use_cache=False,
     )
+    _cache.clear()  # tracked apps/keywords changed — cached monitor results are stale
     return _wrap_response(raw.get("data", raw), "account_add_keywords")
 
 
@@ -1443,13 +1467,14 @@ async def account_delete_keywords(
 
     Args:
         keywords: up to 2000 keywords (API limit; also capped by ASOMOBILE_MAX_KEYWORDS,
-                  default 20). Duplicates are dropped.
+                  default 20). Duplicates are dropped; individual keywords are validated
+                  by the API, not locally, so one bad keyword doesn't block the rest.
     """
     raw = await _two_step(
         "/account/keywords/delete-keywords",
         "/account/keywords/delete-keywords/result",
         {
-            "keywords": _validate_keywords_list(list(dict.fromkeys(keywords)), api_max=2000),
+            "keywords": _validate_batch_keywords(keywords),
             "app_id": _normalize_app_id(app_id),
             "platform": platform,
             "country": _validate_country(country),
@@ -1457,6 +1482,7 @@ async def account_delete_keywords(
         method="DELETE_JSON",
         use_cache=False,
     )
+    _cache.clear()  # tracked apps/keywords changed — cached monitor results are stale
     return _wrap_response(raw.get("data", raw), "account_delete_keywords")
 
 
