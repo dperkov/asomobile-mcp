@@ -1,11 +1,11 @@
 [project]
 name = "asomobile-mcp"
-version = "0.1.0"
+dynamic = ["version"]
 description = "MCP server exposing the ASOMobile public API to Claude / other LLMs"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "mcp>=1.2.0",
+    "mcp>=2.0,<3",
     "httpx>=0.27.0",
 ]
 
@@ -15,6 +15,9 @@ asomobile-mcp = "asomobile_mcp.server:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "asomobile_mcp/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["asomobile_mcp"]
