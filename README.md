@@ -8,7 +8,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets Claude (or any MCP client) query the [ASOMobile](https://asomobile.net) public API for real, paid ASO data: keyword traffic, competition, KEI, app rankings, organic downloads, and more.
 
-API reference: https://asomobile.apidog.io
+API reference: https://api.asomobile.net
 
 ## What it gives you
 
@@ -21,13 +21,30 @@ Tools exposed to the LLM:
 | `app_keywords` | Every keyword the app is indexed for, with traffic/CI/KEI/rank/ASA |
 | `app_keywords_multiple_countries` | Same but across many countries at once |
 | `keyword_check` | Deep dive on a single search query (volume, competition, top apps) |
-| `keyword_suggest` | Related/expanded keyword suggestions |
+| `keyword_suggest` | Related/expanded keyword suggestions from seed keywords |
+| `keyword_finder` | Keyword suggestions generated from the app itself |
 | `keyword_rank` | Historical rank of an app for a keyword |
-| `keyword_monitor` | Pull tracked keywords from your ASOMobile dashboard |
+| `keyword_monitor` | Pull tracked keywords from your ASOMobile dashboard (optional `group_id`) |
 | `world_wide_check` | Compare a keyword across countries |
-| `app_ranking` | Top-charts (free / paid / grossing) by country & category |
+| `app_ranking` | Top-charts presence of an app across countries |
+| `app_ranking_history` | Chart position history for a category (up to 30 days) |
+| `top_charts` | Top free / paid / grossing apps for a category & country |
 | `organic_downloads` | Estimated organic installs broken down by keyword |
 | `keyword_gap` | Composite tool: gap analysis between two apps |
+| `geo_checker` | App availability across countries |
+| `reviews` | User reviews with stars / date / status filters |
+| `asa_app_keywords` | Apple Search Ads keywords for an iOS app |
+| `asa_keyword_check` | Apple Search Ads data for a single keyword |
+| `text_analyzer` | Keyword & text metrics for arbitrary text (e.g. a draft description) |
+| `reference_categories` | Store category list (IDs for `top_charts` / `app_ranking_history`) |
+| `reference_countries` | Supported countries per platform |
+| `reference_languages` | Supported languages |
+| `account_usage` | API token usage: recent requests, tokens remaining, plan |
+| `account_apps` | Apps tracked in your ASOMobile account |
+| `account_add_app` / `account_delete_app` | Add / remove a tracked app |
+| `account_keyword_groups` | Keyword groups (IDs usable in `keyword_monitor`) |
+| `account_add_keywords` / `account_delete_keywords` | Add / remove monitored keywords in batch (up to 2000, per-keyword status) |
+| `clear_cache` / `get_session_stats` | Local utilities: cache & guardrail introspection |
 
 ## Install
 
